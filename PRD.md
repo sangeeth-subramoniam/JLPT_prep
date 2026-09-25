@@ -512,4 +512,28 @@ sentences deferred (§4/NG6); status buttons also on the card page (§4); export
 (§5.7); repo is created public under `sangeeth-subramoniam` (P0 asks once before creating it).
 
 ---
+## 16. Build notes (P1–P4, default model, 2026-09-25)
+Everything in §4–§11 is implemented as written, except these deliberate, recorded deviations:
+- **Word type can be empty (§6.7 relaxed).** 314 vocabulary cards (N4 71, N3 92, N2 151, almost all
+  kana-only words such as もらう, しっかり) arrive from Kanji Commute with no JMdict POS. §6.1 forbids
+  fetching a dictionary here and §6.5 forbids guessing, so they ship with `type: []`, no Word type
+  section and no forms. The gate still fails any card whose source *has* a POS but no label. Fixing
+  it properly = upstream in Kanji Commute's `build_vocab.mjs` (kana-only JMdict lookup), then regenerate.
+- **K3 tip wording.** "… — watch for the shared piece" was factually wrong for most same-reading sets
+  (政 / 性, 制, 成, 声 share no piece). Template is now "… — don't mix them up."
+- **V1 tip** fires only when a verb is *either* transitive *or* intransitive; words tagged both get no V1.
+- **っ before an okurigana dot** is carried across it: もっ.て → *mot.te*, ほっ.する → *hos.suru*
+  (§6.3 rule 4 + 7 combined). Word-final ッ (ガッ, サッ) is still dropped and counted (12).
+- **Context line** says "school grade 3", not "grade 3", so a beginner does not read it as a score.
+- **`typeRaw` is not shipped** (§9: N3 vocab was 1.07 MB with it, 1.0 MB without); total deck data ≈ 3.1 MB.
+- **Long-press click swallowing** is document-wide, not per-row: the sheet opens under the finger, so
+  the click fired on lift lands on the sheet backdrop and would close it instantly. Found in the
+  headless-Chrome run; a fresh pointerdown ends the swallow so the next real tap always works.
+
+Verification: 74 `node --test` cases (romaji/forms goldens, tips, gate on committed data, frozen
+order, storage/import/export, precache completeness, AC-12 wording) + a headless-Chrome run at
+390×844 with touch emulation covering AC-1–AC-7 and AC-10 locally (every route offline).
+Outstanding: P5 deploy (awaiting owner go-ahead for the public repo), AC-11, AC-13.
+
+---
 *End of PRD rev 1. Implementer: read CLAUDE.md first.*

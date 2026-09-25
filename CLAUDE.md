@@ -7,6 +7,10 @@ square at the right edge** (Pending grey outline · Review amber · Done green),
 A deck is complete when every square is green. Static HTML/CSS/vanilla JS + JSON, GitHub Pages,
 `localStorage`. No framework, no build step, no runtime dependency.
 
+## Status (2026-09-25)
+**P0 (local) + P1–P4 built**, 74 tests green, headless-Chrome e2e green. **P5 not done**: the GitHub
+repo is not created yet (owner go-ahead needed). Deviations from the PRD are recorded in **PRD §16**.
+
 ## Source of truth
 **`PRD.md` rev 1** (Fable, 2026-09-25). Implement it exactly; the only open item is §15 (levels are
 assumed N4/N3/N2 — check the owner confirmed it before P1 freezes the decks).
