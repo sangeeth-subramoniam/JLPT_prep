@@ -1,7 +1,7 @@
 # PRD — JLPT_prep ("cover it before you test it")
 
 **Status:** Revision 1 — structured by Fable 5.1 on 2026-09-25 from the owner's brief. All decisions
-locked (§15 confirmed by owner 2026-09-25: N4/N3/N2). **Built and live** — see §16. Ready for the default model to build.
+locked (§15 confirmed by owner 2026-09-25: N4/N3/N2). **Built and live** — see §16.
 **Owner:** Sangeeth · **Repo (to create):** github.com/sangeeth-subramoniam/JLPT_prep (public)
 **Live URL (after P5):** https://sangeeth-subramoniam.github.io/JLPT_prep/
 **Sister project:** Kanji Commute (`../japanese_learning_bot`, PRD rev 2 + §17–§20). JLPT_prep
