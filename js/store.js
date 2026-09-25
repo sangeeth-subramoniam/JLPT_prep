@@ -119,7 +119,7 @@ export function createStore(storage = safeStorage(), now = () => new Date().toIS
       read() {
         try {
           const u = JSON.parse(storage.getItem(UI_KEY) || '{}');
-          return { filter: u.filter || {}, scroll: u.scroll || {} };
+          return { ...u, filter: u.filter || {}, scroll: u.scroll || {} };
         } catch { return { filter: {}, scroll: {} }; }
       },
       write(u) {

@@ -7,11 +7,11 @@ existing `n → id` pair; new cards may only be appended. The generator refuses 
 ## Counts & sizes
 | Level | Kanji | Vocabulary | kanji.json | vocab.json |
 |---|---:|---:|---:|---:|
-| N4 | 166 | 663 | 193 KB | 292 KB |
-| N3 | 367 | 2139 | 440 KB | 1002 KB |
-| N2 | 367 | 1792 | 409 KB | 810 KB |
+| N4 | 166 | 663 | 342 KB | 292 KB |
+| N3 | 367 | 2139 | 647 KB | 1002 KB |
+| N2 | 367 | 1792 | 510 KB | 810 KB |
 
-Total deck data: **3146 KB** (all precached by the service worker).
+Total deck data: **3602 KB** (all precached by the service worker).
 Vocabulary = the level's full tanos vocabulary list: Kanji Commute's `vocab/<l>.json` followed by
 `compounds/<l>.json`, merged into one deck with 0 id collisions (id = `word|reading`).
 
@@ -40,6 +40,9 @@ Tips per rule (PRD §6.6):
 - **Word type** — `tools/wordtype.mjs`: every JMdict POS string mapped to a beginner label.
 - **Forms** — `tools/forms.mjs`: rule-based ます / て / ない / た for verbs, adjective and する
   forms. Generated only when the word and its reading end with the kana the word type predicts.
+- **Exam words** (`exam` on kanji cards) — every word on the N5–N2 vocabulary lists that contains
+  the kanji, grouped by the word's level; N4–N2 entries link to their Vocabulary card number.
+  **4715** entries in all.
 - **Tips** — `tools/tips.mjs`: fixed templates that restate facts already in the deck. Never
   hand-written per card.
 

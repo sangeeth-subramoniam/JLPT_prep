@@ -11,7 +11,7 @@ A deck is complete when every square is green. Static HTML/CSS/vanilla JS + JSON
 **P0–P5 done — LIVE** at https://sangeeth-subramoniam.github.io/JLPT_prep/ (public repo
 `sangeeth-subramoniam/JLPT_prep`, Pages from `main` root). 74 tests green; headless-Chrome e2e green on
 the live URL incl. every route offline. Owner confirmed levels N4/N3/N2 (§15 closed) — decks are now
-frozen. Only **AC-13** (owner's phone run) is outstanding. Deviations from the PRD: **PRD §16**.
+frozen. Only **AC-13** (owner's phone run) is outstanding. Deviations from the PRD: **PRD §16**. Kanji cards also carry an `exam` word list (collapsed section): **PRD §17**.
 Any change to shipped files: bump `CACHE` in `sw.js` AND `APP_VERSION` in `js/app.js` (a test checks).
 
 ## Source of truth

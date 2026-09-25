@@ -537,5 +537,22 @@ order, storage/import/export, precache completeness, AC-12 wording) + a headless
 https://sangeeth-subramoniam.github.io/JLPT_prep/; the e2e run passed against the live URL, offline
 included (AC-10, AC-11 web side). Outstanding: Add-to-Home-Screen on the phone and **AC-13**.
 
+## 17. Change: "All exam words" on kanji cards (owner request, 2026-09-25)
+**Why.** The owner asked whether "Words you will meet" covers every word they must know for a
+kanji. It does not: those 4 words come from Kanji Commute's JMdict-common picker, not the JLPT lists.
+Across the 900 cards, 1,953 of the 2,815 JLPT words (up to each card's level) that contain the kanji
+were not shown, and only 1,091 of the 3,562 shown words are on any JLPT list (e.g. 会 showed 会堂, off-list,
+but not 会社, 会話, 会議).
+**What.** Kanji cards gain `exam: {N5, N4, N3, N2}` — every word on those vocabulary lists containing
+the kanji, grouped by the word's level, deck order, `{word, reading, romaji, meaning, n?}`; N4–N2
+entries carry `n`, their Vocabulary-deck number (N5 has no deck here, so no link). 4,715 entries,
++≈450 KB (total deck data ≈ 3.55 MB). The gate checks every entry contains the kanji and that each `n`
+points at the same word.
+**UI.** A collapsed `<details>` section **"All exam words with 会 (N5–N2)"** with a total count, right
+after "Words you will meet" — an owner-approved exception to FR-15's "nothing collapsed". Each level
+shows a heading with its word count (or "none"); N4–N2 words link to their Vocabulary card and show
+that card's status square. The open/closed choice is remembered across cards (`jlptprep.v1.ui.examOpen`).
+"Words you will meet" is unchanged. CACHE / APP_VERSION → `jlpt-prep-v2`.
+
 ---
 *End of PRD rev 1. Implementer: read CLAUDE.md first.*

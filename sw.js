@@ -1,7 +1,7 @@
 // sw.js — precache the app shell AND all six decks, so the app is offline from the first visit
 // (PRD §9). Bump CACHE on every deploy (keep equal to APP_VERSION in js/app.js); old caches are
 // purged on activate.
-const CACHE = 'jlpt-prep-v1';
+const CACHE = 'jlpt-prep-v2';
 
 const ASSETS = [
   './',

@@ -23,12 +23,24 @@ test('manifest matches the deck files', () => {
 });
 
 test('shipped decks contain only schema fields (§6.2)', () => {
-  const K = ['n','id','kanji','primary','meanings','strokes','grade','readings','components','words','tips'];
+  const K = ['n','id','kanji','primary','meanings','strokes','grade','readings','components','words','tips','exam'];
   const V = ['n','id','word','reading','romaji','meanings','type','kind','breakdown','forms','tips'];
   for (const L of LEVELS) {
     for (const c of committed[L].kanji) assert.deepEqual(Object.keys(c), K);
     for (const c of committed[L].vocab) assert.deepEqual(Object.keys(c), V);
   }
+});
+
+test('exam words: 会 (N4) lists every JLPT word with 会, grouped by level, linked to the deck', () => {
+  const k = committed.N4.kanji.find((c) => c.kanji === '会');
+  const words = (lv) => k.exam[lv].map((w) => w.word);
+  assert.deepEqual(words('N5'), ['会う', '会社']);
+  for (const w of ['会話', '会議', '社会', '機会', '教会', '会場', '会議室', '展覧会']) assert.ok(words('N4').includes(w), w);
+  assert.ok(words('N3').includes('会員'));
+  const kaigi = k.exam.N4.find((w) => w.word === '会議');
+  assert.equal(committed.N4.vocab[kaigi.n - 1].word, '会議');
+  assert.equal(kaigi.romaji, 'kaigi');
+  assert.equal(k.exam.N5[0].n, undefined);
 });
 
 test('no card is 行く without an Iku/Yuku rule', () => {

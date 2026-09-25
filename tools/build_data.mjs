@@ -35,7 +35,19 @@ function makeRomaji(report) {
   };
 }
 
-function buildKanjiDeck(level, source, R, report) {
+export const EXAM_LEVELS = ['N5', 'N4', 'N3', 'N2'];
+
+/**
+ * Every JLPT word (N5–N2) containing `kanji`, grouped by the level the word is listed at, in deck
+ * order. N4–N2 entries carry `n`, their number in this app's Vocabulary deck; N5 has no deck here.
+ */
+function examWords(kanji, examDecks) {
+  const out = {};
+  for (const L of EXAM_LEVELS) out[L] = examDecks[L].filter((w) => w.word.includes(kanji));
+  return out;
+}
+
+function buildKanjiDeck(level, source, R, report, examDecks) {
   const src = readJson(path.join(source, `${level.toLowerCase()}.json`));
   const idx = kanjiIndex(src);
   const tipRules = report.tipRules;
@@ -57,6 +69,7 @@ function buildKanjiDeck(level, source, R, report) {
       components: k.components && k.components.length ? k.components : null,
       words: k.words.map((w) => ({ word: w.word, reading: w.reading, romaji: R(w.reading, where), meaning: w.meaning })),
       tips,
+      exam: examWords(k.kanji, examDecks),
     };
   });
 }
@@ -96,7 +109,15 @@ export function buildAll(source = DEFAULT_SOURCE) {
   const report = { droppedSokuon: 0, formsGenerated: 0, formsSkipped: [], kanaOnly: 0, noType: [], tipRules: {} };
   const R = makeRomaji(report);
   const decks = {};
-  for (const L of LEVELS) decks[L] = { kanji: buildKanjiDeck(L, source, R, report), vocab: buildVocabDeck(L, source, R, report) };
+  for (const L of LEVELS) decks[L] = { vocab: buildVocabDeck(L, source, R, report) };
+  // Exam-word index: N5 straight from the source (no N5 deck in this app), N4–N2 from our decks.
+  const entry = (w, where, n) => ({ word: w.word, reading: w.reading, romaji: R(w.reading, where), meaning: w.meanings[0], ...(n ? { n } : {}) });
+  const examDecks = {
+    N5: [...readJson(path.join(source, 'vocab', 'n5.json')), ...readJson(path.join(source, 'compounds', 'n5.json'))]
+      .map((w) => entry(w, `N5 vocab ${w.word}|${w.reading}`)),
+  };
+  for (const L of LEVELS) examDecks[L] = decks[L].vocab.map((w) => entry(w, `${L} vocab ${w.id}`, w.n));
+  for (const L of LEVELS) decks[L] = { kanji: buildKanjiDeck(L, source, R, report, examDecks), vocab: decks[L].vocab };
   return { decks, report };
 }
 
@@ -121,6 +142,13 @@ export function validate(decks) {
           if (!c.words?.length) errs.push(`${where}: no words`);
           for (const r of c.readings || []) { rom(r.romaji, where); if (r.romaji == null) errs.push(`${where}: reading without romaji`); rom(r.wordRomaji, where); }
           for (const w of c.words || []) { rom(w.romaji, where); if (!w.romaji) errs.push(`${where}: word without romaji`); }
+          if (!c.exam || Object.keys(c.exam).join() !== 'N5,N4,N3,N2') errs.push(`${where}: exam must have N5,N4,N3,N2`);
+          for (const [lv, ws] of Object.entries(c.exam || {})) for (const w of ws) {
+            if (!w.word.includes(c.kanji)) errs.push(`${where}: exam word ${w.word} lacks the kanji`);
+            if (!w.romaji || !w.meaning) errs.push(`${where}: exam word ${w.word} incomplete`);
+            rom(w.romaji, where);
+            if (lv === 'N5' ? w.n !== undefined : decks[lv]?.vocab?.[w.n - 1]?.word !== w.word) errs.push(`${where}: exam word ${w.word} bad deck link`);
+          }
         } else {
           if (!c.meanings?.length) errs.push(`${where}: no meanings`);
           // Source has no JMdict POS for ~7% of (almost all kana-only) words; we never guess one.
@@ -180,6 +208,8 @@ function writeAll(decks, report) {
   return sizes;
 }
 
+const examTotal = (decks) => LEVELS.reduce((a, L) => a + decks[L].kanji.reduce((b, k) => b + Object.values(k.exam).flat().length, 0), 0);
+
 function readme(today, decks, report, sizes) {
   const kb = (b) => `${(b / 1024).toFixed(0)} KB`;
   const total = Object.values(sizes).reduce((a, b) => a + b, 0);
@@ -219,6 +249,9 @@ ${rules}
 - **Word type** — \`tools/wordtype.mjs\`: every JMdict POS string mapped to a beginner label.
 - **Forms** — \`tools/forms.mjs\`: rule-based ます / て / ない / た for verbs, adjective and する
   forms. Generated only when the word and its reading end with the kana the word type predicts.
+- **Exam words** (\`exam\` on kanji cards) — every word on the N5–N2 vocabulary lists that contains
+  the kanji, grouped by the word's level; N4–N2 entries link to their Vocabulary card number.
+  **${examTotal(decks)}** entries in all.
 - **Tips** — \`tools/tips.mjs\`: fixed templates that restate facts already in the deck. Never
   hand-written per card.
 

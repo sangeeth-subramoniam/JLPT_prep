@@ -3,7 +3,7 @@ import { createStore, LEVELS, DECKS, STATUSES } from './store.js';
 import { loadManifest, loadDeck } from './data.js';
 import { attachRowGestures } from './gesture.js';
 
-export const APP_VERSION = 'jlpt-prep-v1'; // keep equal to CACHE in sw.js (tested)
+export const APP_VERSION = 'jlpt-prep-v2'; // keep equal to CACHE in sw.js (tested)
 const DECK_NAME = { kanji: 'Kanji', vocab: 'Vocabulary' };
 const STATUS_NAME = { pending: 'Pending', review: 'Review', done: 'Done' };
 const FILTERS = ['all', 'pending', 'review', 'done'];
@@ -207,6 +207,29 @@ const section = (title, inner) => `<section class="s"><h2>${title}</h2>${inner}<
 const tipsSection = (tips) => tips?.length ? section('Tips', `<ul class="tips">${tips.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>`) : '';
 const wordLine = (w) => `<span class="jp">${esc(w.word)}</span> <span class="kanas">${esc(w.reading)}</span> <span class="rm">${esc(w.romaji)}</span><span class="gloss">${esc(w.meaning)}</span>`;
 
+// Collapsed by default; remembers the last open/closed choice across cards.
+function examSection(c) {
+  const total = Object.values(c.exam).reduce((a, ws) => a + ws.length, 0);
+  const groups = Object.entries(c.exam).map(([lv, ws]) => {
+    const items = ws.map((w) => {
+      const inner = `<span class="jp">${esc(w.word)}</span> <span class="kanas">${esc(w.reading)}</span> <span class="rm">${esc(w.romaji)}</span><span class="gloss">${esc(w.meaning)}</span>`;
+      if (!w.n) return `<li>${inner}</li>`;
+      const st = store.get(lv, 'vocab', `${w.word}|${w.reading}`);
+      return `<li><a class="exam-link" href="#/${lv}/vocab/${w.n}"><span class="exam-txt">${inner}</span><span class="exam-meta">#${w.n} ${sq(st)}</span></a></li>`;
+    }).join('');
+    return `<h3>${lv} <span class="count">${ws.length ? `${ws.length} word${ws.length > 1 ? 's' : ''}` : 'none'}</span></h3>
+      ${ws.length ? `<ul class="lines" lang="ja">${items}</ul>` : ''}`;
+  }).join('');
+  const open = ui().examOpen ? ' open' : '';
+  return `<details class="exam"${open}>
+    <summary><span class="sum-title">All exam words with <span lang="ja">${esc(c.kanji)}</span> (N5–N2)</span><span class="count">${total}</span></summary>
+    <div class="exam-body">
+    <p class="note">Every word on the JLPT N5–N2 vocabulary lists that uses this kanji, by the level the word is listed at. Tap one to open its Vocabulary card. N5 words have no deck in this app.</p>
+    ${groups}
+    </div>
+  </details>`;
+}
+
 function kanjiBody(c, L) {
   const ctx = [c.strokes ? `${c.strokes} strokes` : '', c.grade ? `school grade ${c.grade}` : '', `JLPT ${L}`].filter(Boolean).join(' · ');
   const readings = c.readings.map((r) => `<li><span class="jp">${esc(r.kana)}</span> <span class="rm">${esc(r.romaji)}</span><span class="tag">${r.type}</span>
@@ -223,6 +246,7 @@ function kanjiBody(c, L) {
     ${section('How it is read', `<ul class="lines" lang="ja">${readings}</ul>`)}
     ${section('Pieces you can spot', pieces)}
     ${section('Words you will meet', `<ul class="lines" lang="ja">${c.words.map((w) => `<li>${wordLine(w)}</li>`).join('')}</ul>`)}
+    ${examSection(c)}
     ${also.length ? section('Also means', `<p class="also">${esc(also.join(' · '))}</p>`) : ''}
     ${tipsSection(c.tips)}`;
 }
@@ -263,6 +287,7 @@ async function viewCard({ L, D, n, stale }) {
     store.set(L, D, c.id, b.dataset.status);
     for (const x of app.querySelectorAll('.statusbar button')) x.setAttribute('aria-pressed', String(x === b));
   });
+  app.querySelector('details.exam')?.addEventListener('toggle', (e) => saveUi((u) => { u.examOpen = e.target.open; }));
   const onKey = (e) => {
     if (e.altKey || e.ctrlKey || e.metaKey || !document.getElementById('sheet').hidden) return;
     if (e.key === 'ArrowLeft' && n > 1) location.hash = `#/${L}/${D}/${n - 1}`;
