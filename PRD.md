@@ -1,7 +1,7 @@
 # PRD — JLPT_prep ("cover it before you test it")
 
 **Status:** Revision 1 — structured by Fable 5.1 on 2026-09-25 from the owner's brief. All decisions
-locked except the **one [CONFIRM]** item in §15. Ready for the default model to build.
+locked (§15 confirmed by owner 2026-09-25: N4/N3/N2). **Built and live** — see §16. Ready for the default model to build.
 **Owner:** Sangeeth · **Repo (to create):** github.com/sangeeth-subramoniam/JLPT_prep (public)
 **Live URL (after P5):** https://sangeeth-subramoniam.github.io/JLPT_prep/
 **Sister project:** Kanji Commute (`../japanese_learning_bot`, PRD rev 2 + §17–§20). JLPT_prep
@@ -533,7 +533,9 @@ Everything in §4–§11 is implemented as written, except these deliberate, rec
 Verification: 74 `node --test` cases (romaji/forms goldens, tips, gate on committed data, frozen
 order, storage/import/export, precache completeness, AC-12 wording) + a headless-Chrome run at
 390×844 with touch emulation covering AC-1–AC-7 and AC-10 locally (every route offline).
-Outstanding: P5 deploy (awaiting owner go-ahead for the public repo), AC-11, AC-13.
+**P5 done 2026-09-25:** owner approved the public repo and confirmed N4/N3/N2 (§15 closed). Live at
+https://sangeeth-subramoniam.github.io/JLPT_prep/; the e2e run passed against the live URL, offline
+included (AC-10, AC-11 web side). Outstanding: Add-to-Home-Screen on the phone and **AC-13**.
 
 ---
 *End of PRD rev 1. Implementer: read CLAUDE.md first.*
