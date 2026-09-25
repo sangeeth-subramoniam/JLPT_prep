@@ -1,0 +1,40 @@
+{
+  "generated": "2026-09-25",
+  "levels": [
+    "N4",
+    "N3",
+    "N2"
+  ],
+  "decks": {
+    "N4": {
+      "kanji": {
+        "file": "N4/kanji.json",
+        "count": 166
+      },
+      "vocab": {
+        "file": "N4/vocab.json",
+        "count": 663
+      }
+    },
+    "N3": {
+      "kanji": {
+        "file": "N3/kanji.json",
+        "count": 367
+      },
+      "vocab": {
+        "file": "N3/vocab.json",
+        "count": 2139
+      }
+    },
+    "N2": {
+      "kanji": {
+        "file": "N2/kanji.json",
+        "count": 367
+      },
+      "vocab": {
+        "file": "N2/vocab.json",
+        "count": 1792
+      }
+    }
+  }
+}
