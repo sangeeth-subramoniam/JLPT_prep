@@ -160,6 +160,23 @@ details.exam h3 .count { margin-left: 0; }
 .exam-txt { flex: 1; min-width: 0; }
 .exam-meta { flex: none; display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
 
+/* ---------- kanji-card hide toggles ---------- */
+.tl { display: flex; align-items: center; gap: 8px; }
+.tl-body { flex: 1; min-width: 0; }
+.eye, .hide-all {
+  flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-width: 44px; min-height: 44px; border: 0; border-radius: 10px; background: transparent;
+  color: var(--muted); cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.eye:active, .hide-all:active { background: var(--surface-2); }
+.eye[aria-pressed="true"] { color: var(--text); }
+.hide-all { padding: 0 10px; margin-right: -10px; font-size: 14px; color: var(--text); }
+.headline-line .tl-body { padding-left: 52px; }
+.masked .ans {
+  color: transparent !important; background: var(--surface-2); border-radius: 6px;
+  -webkit-user-select: none; user-select: none;
+}
+
 /* ---------- settings ---------- */
 .group { margin-top: 24px; }
 .group h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }

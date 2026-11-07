@@ -554,5 +554,15 @@ shows a heading with its word count (or "none"); N4–N2 words link to their Voc
 that card's status square. The open/closed choice is remembered across cards (`jlptprep.v1.ui.examOpen`).
 "Words you will meet" is unchanged. CACHE / APP_VERSION → `jlpt-prep-v2`.
 
+## 18. Change: hide toggles on the kanji card page (owner request, 2026-11-07)
+Self-test without leaving the card. Kanji card pages only; nothing else changed.
+- **Per-line toggle** (eye button, right edge) on: the headline meaning, every "How it is read" line,
+  every "Words you will meet" line, every exam-word line, and "Also means". Hiding a line masks its
+  kana, romaji and English; the kanji and Japanese words stay visible.
+- **Header toggle** ("Hide all" / "Show all") is a switch with its own state and takes precedence:
+  flipping it sets every line, overriding individual toggles in both directions.
+- The header state carries to the next card (`jlptprep.v1.ui.hideAll`); per-line choices are per
+  page. CACHE / APP_VERSION → `jlpt-prep-v3`.
+
 ---
 *End of PRD rev 1. Implementer: read CLAUDE.md first.*

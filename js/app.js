@@ -3,7 +3,7 @@ import { createStore, LEVELS, DECKS, STATUSES } from './store.js';
 import { loadManifest, loadDeck } from './data.js';
 import { attachRowGestures } from './gesture.js';
 
-export const APP_VERSION = 'jlpt-prep-v2'; // keep equal to CACHE in sw.js (tested)
+export const APP_VERSION = 'jlpt-prep-v3'; // keep equal to CACHE in sw.js (tested)
 const DECK_NAME = { kanji: 'Kanji', vocab: 'Vocabulary' };
 const STATUS_NAME = { pending: 'Pending', review: 'Review', done: 'Done' };
 const FILTERS = ['all', 'pending', 'review', 'done'];
@@ -205,17 +205,37 @@ function statusBar(status) {
 }
 const section = (title, inner) => `<section class="s"><h2>${title}</h2>${inner}</section>`;
 const tipsSection = (tips) => tips?.length ? section('Tips', `<ul class="tips">${tips.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>`) : '';
-const wordLine = (w) => `<span class="jp">${esc(w.word)}</span> <span class="kanas">${esc(w.reading)}</span> <span class="rm">${esc(w.romaji)}</span><span class="gloss">${esc(w.meaning)}</span>`;
+const wordLine = (w) => `<span class="jp">${esc(w.word)}</span> <span class="kanas ans">${esc(w.reading)}</span> <span class="rm ans">${esc(w.romaji)}</span><span class="gloss"><span class="ans">${esc(w.meaning)}</span></span>`;
+
+// ---- kanji-card hide toggles: each line hides its kana, romaji and English; the header toggle
+// sets every line at once (it takes precedence). The header choice carries over to the next card.
+const EYE = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+const EYE_OFF = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 3l18 18" stroke="currentColor" stroke-width="2"/></svg>';
+const eyeBtn = (hidden) => `<button type="button" class="eye" aria-pressed="${hidden}" aria-label="${hidden ? 'Show' : 'Hide'} this line">${hidden ? EYE_OFF : EYE}</button>`;
+const tline = (tag, cls, body, hidden) => `<${tag} class="tl ${cls}${hidden ? ' masked' : ''}"><div class="tl-body">${body}</div>${eyeBtn(hidden)}</${tag}>`;
+function setLine(line, hidden) {
+  line.classList.toggle('masked', hidden);
+  const b = line.querySelector(':scope > .eye');
+  b.setAttribute('aria-pressed', String(hidden));
+  b.setAttribute('aria-label', `${hidden ? 'Show' : 'Hide'} this line`);
+  b.innerHTML = hidden ? EYE_OFF : EYE;
+}
+// The header toggle is a switch with its own state: off = all shown, on = all hidden. Flipping it
+// applies to every line, overriding whatever the per-line toggles were set to.
+function renderHideAll(btn, hidden) {
+  btn.setAttribute('aria-pressed', String(hidden));
+  btn.innerHTML = `${hidden ? EYE_OFF : EYE}<span>${hidden ? 'Show all' : 'Hide all'}</span>`;
+}
 
 // Collapsed by default; remembers the last open/closed choice across cards.
-function examSection(c) {
+function examSection(c, hidden) {
   const total = Object.values(c.exam).reduce((a, ws) => a + ws.length, 0);
   const groups = Object.entries(c.exam).map(([lv, ws]) => {
     const items = ws.map((w) => {
-      const inner = `<span class="jp">${esc(w.word)}</span> <span class="kanas">${esc(w.reading)}</span> <span class="rm">${esc(w.romaji)}</span><span class="gloss">${esc(w.meaning)}</span>`;
-      if (!w.n) return `<li>${inner}</li>`;
+      const inner = wordLine(w);
+      if (!w.n) return tline('li', '', inner, hidden);
       const st = store.get(lv, 'vocab', `${w.word}|${w.reading}`);
-      return `<li><a class="exam-link" href="#/${lv}/vocab/${w.n}"><span class="exam-txt">${inner}</span><span class="exam-meta">#${w.n} ${sq(st)}</span></a></li>`;
+      return tline('li', '', `<a class="exam-link" href="#/${lv}/vocab/${w.n}"><span class="exam-txt">${inner}</span><span class="exam-meta">#${w.n} ${sq(st)}</span></a>`, hidden);
     }).join('');
     return `<h3>${lv} <span class="count">${ws.length ? `${ws.length} word${ws.length > 1 ? 's' : ''}` : 'none'}</span></h3>
       ${ws.length ? `<ul class="lines" lang="ja">${items}</ul>` : ''}`;
@@ -230,24 +250,24 @@ function examSection(c) {
   </details>`;
 }
 
-function kanjiBody(c, L) {
+function kanjiBody(c, L, hidden) {
   const ctx = [c.strokes ? `${c.strokes} strokes` : '', c.grade ? `school grade ${c.grade}` : '', `JLPT ${L}`].filter(Boolean).join(' · ');
-  const readings = c.readings.map((r) => `<li><span class="jp">${esc(r.kana)}</span> <span class="rm">${esc(r.romaji)}</span><span class="tag">${r.type}</span>
+  const readings = c.readings.map((r) => tline('li', '', `<span class="jp ans">${esc(r.kana)}</span> <span class="rm ans">${esc(r.romaji)}</span><span class="tag">${r.type}</span>
       ${r.word
-        ? `<span class="gloss"><span class="kanas">${esc(r.word)}</span> ${esc(r.wordReading)} <span class="rm">${esc(r.wordRomaji)}</span> — ${esc(r.meaning)}</span>`
-        : '<span class="gloss rare">rare, skip for now</span>'}</li>`).join('');
+        ? `<span class="gloss"><span class="kanas">${esc(r.word)}</span> <span class="ans">${esc(r.wordReading)}</span> <span class="rm ans">${esc(r.wordRomaji)}</span> — <span class="ans">${esc(r.meaning)}</span></span>`
+        : '<span class="gloss rare">rare, skip for now</span>'}`, hidden)).join('');
   const pieces = c.components?.length
     ? `<div class="pieces">${c.components.map((p) => `<span class="piece"><b>${esc(p.char)}</b>${esc(p.name)}</span>`).join('')}</div>`
     : '<p>It is a single piece.</p>';
   const also = c.meanings.filter((m) => m !== c.primary);
   return `<div class="big" lang="ja">${esc(c.kanji)}</div>
-    <div class="headline">${esc(c.primary)}</div>
+    ${tline('div', 'headline-line', `<div class="headline"><span class="ans">${esc(c.primary)}</span></div>`, hidden)}
     <div class="context">${esc(ctx)}</div>
     ${section('How it is read', `<ul class="lines" lang="ja">${readings}</ul>`)}
     ${section('Pieces you can spot', pieces)}
-    ${section('Words you will meet', `<ul class="lines" lang="ja">${c.words.map((w) => `<li>${wordLine(w)}</li>`).join('')}</ul>`)}
-    ${examSection(c)}
-    ${also.length ? section('Also means', `<p class="also">${esc(also.join(' · '))}</p>`) : ''}
+    ${section('Words you will meet', `<ul class="lines" lang="ja">${c.words.map((w) => tline('li', '', wordLine(w), hidden)).join('')}</ul>`)}
+    ${examSection(c, hidden)}
+    ${also.length ? section('Also means', tline('div', '', `<p class="also"><span class="ans">${esc(also.join(' · '))}</span></p>`, hidden)) : ''}
     ${tipsSection(c.tips)}`;
 }
 
@@ -276,11 +296,30 @@ async function viewCard({ L, D, n, stale }) {
   const total = deck.length;
   const prev = n > 1 ? `<a href="#/${L}/${D}/${n - 1}">‹ Prev</a>` : '<span aria-disabled="true">‹ Prev</span>';
   const next = n < total ? `<a href="#/${L}/${D}/${n + 1}">Next ›</a>` : '<span aria-disabled="true">Next ›</span>';
+  const hidden = D === 'kanji' && ui().hideAll === true;
   app.innerHTML = `${bar(`#/${L}/${D}`, 'Back to the list', `${L} · ${DECK_NAME[D]}`, `${n} / ${total}`)}
     <div class="nav">${prev}${next}</div>
     ${statusBar(store.get(L, D, c.id))}
-    <article>${D === 'kanji' ? kanjiBody(c, L) : vocabBody(c)}</article>
+    <article>${D === 'kanji' ? kanjiBody(c, L, hidden) : vocabBody(c)}</article>
     <div class="nav">${prev}${next}</div>`;
+  if (D === 'kanji') {
+    app.querySelector('.bar').insertAdjacentHTML('beforeend', '<button type="button" class="hide-all"></button>');
+    const allBtn = app.querySelector('.hide-all');
+    let allHidden = hidden;
+    renderHideAll(allBtn, allHidden);
+    allBtn.addEventListener('click', () => {
+      allHidden = !allHidden;
+      for (const l of app.querySelectorAll('.tl')) setLine(l, allHidden);
+      saveUi((u) => { u.hideAll = allHidden; });
+      renderHideAll(allBtn, allHidden);
+    });
+    app.querySelector('article').addEventListener('click', (e) => {
+      const b = e.target.closest('.tl > .eye');
+      if (!b) return;
+      const line = b.parentElement;
+      setLine(line, !line.classList.contains('masked'));
+    });
+  }
   app.querySelector('.statusbar').addEventListener('click', (e) => {
     const b = e.target.closest('button[data-status]');
     if (!b) return;
